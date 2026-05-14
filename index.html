@@ -2229,12 +2229,17 @@ footer {
       <!-- Success message -->
       <div class="form-success" id="form-success">
         <div class="success-icon">✅</div>
-        <h3>Demande envoyée !</h3>
-        <p>Merci pour votre confiance. <strong style="color:var(--cyan)">Weleck Malikov</strong> vous contactera personnellement sous 24h pour discuter de votre projet et vous transmettre un devis personnalisé.</p>
-        <p style="margin-top:1rem">En attendant, vous pouvez aussi nous joindre directement sur WhatsApp.</p>
-        <a href="tel:+22890823180" class="btn-primary" style="margin-top:1.5rem;display:inline-flex;justify-content:center">
-          📞 Appeler maintenant
-        </a>
+        <h3>WhatsApp ouvert !</h3>
+        <p>Votre devis a été préparé et <strong style="color:var(--cyan)">WhatsApp s'est ouvert</strong> avec le message complet prêt à envoyer. Il vous suffit d'appuyer sur <strong style="color:#25D366">Envoyer ▶</strong> dans WhatsApp pour que Malikov le reçoive immédiatement.</p>
+        <p style="margin-top:0.85rem;font-size:13px;color:var(--muted)">Si WhatsApp ne s'est pas ouvert automatiquement, cliquez sur le bouton ci-dessous.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1.5rem">
+          <a id="wa-link-success" href="https://wa.me/22890823180" target="_blank" class="btn-primary" style="display:inline-flex;justify-content:center;background:linear-gradient(135deg,#25D366,#1DA851)">
+            💬 Ouvrir WhatsApp
+          </a>
+          <a href="tel:+22890823180" class="btn-secondary" style="display:inline-flex;justify-content:center">
+            📞 Appeler
+          </a>
+        </div>
       </div>
     </div>
 
@@ -2336,35 +2341,80 @@ footer {
 <script>
 /* ── Form submission ── */
 function submitForm() {
-  const fields = ['prenom','nom','telephone','type','message'];
-  const values = fields.map(id => document.getElementById(id).value.trim());
+  // ── 1. Champs obligatoires
+  const required = ['prenom','nom','telephone','type','message'];
   let valid = true;
 
-  values.forEach((val, i) => {
-    const el = document.getElementById(fields[i]);
-    if (!val) {
+  required.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) {
       valid = false;
       el.style.borderColor = '#FF3D00';
-      el.style.boxShadow = '0 0 0 3px rgba(255,61,0,0.15)';
-      el.style.animation = 'shake 0.3s ease';
+      el.style.boxShadow   = '0 0 0 3px rgba(255,61,0,0.15)';
+      el.style.animation   = 'shake 0.3s ease';
       setTimeout(() => {
         el.style.borderColor = '';
-        el.style.boxShadow = '';
-        el.style.animation = '';
+        el.style.boxShadow   = '';
+        el.style.animation   = '';
       }, 1200);
     }
   });
 
   if (!valid) return;
 
+  // ── 2. Récupérer les valeurs
+  const prenom    = document.getElementById('prenom').value.trim();
+  const nom       = document.getElementById('nom').value.trim();
+  const telephone = document.getElementById('telephone').value.trim();
+  const whatsapp  = document.getElementById('whatsapp').value.trim();
+  const email     = document.getElementById('email').value.trim();
+  const type      = document.getElementById('type').value;
+  const budget    = document.getElementById('budget').value || 'Non précisé';
+  const message   = document.getElementById('message').value.trim();
+
+  // Services cochés
+  const checks = document.querySelectorAll('.form-checkboxes input[type="checkbox"]:checked');
+  const services = Array.from(checks).map(c => c.parentElement.querySelector('span').textContent.trim()).join(', ') || 'Aucun';
+
+  // ── 3. Construire le message WhatsApp
+  const texte =
+`🖥️ *NOUVEAU DEVIS — Winners Network*
+━━━━━━━━━━━━━━━━━━━━━
+👤 *Client :* ${prenom} ${nom}
+📞 *Téléphone :* ${telephone}
+💬 *WhatsApp :* ${whatsapp || 'Même numéro'}
+📧 *Email :* ${email || 'Non renseigné'}
+━━━━━━━━━━━━━━━━━━━━━
+🔧 *Type de besoin :* ${type}
+💰 *Budget estimé :* ${budget}
+🛠️ *Services souhaités :* ${services}
+━━━━━━━━━━━━━━━━━━━━━
+📝 *Description :*
+${message}
+━━━━━━━━━━━━━━━━━━━━━
+📅 Envoyé depuis le site Winners Network`;
+
+  // ── 4. Animation bouton
   const btn = document.getElementById('btn-submit');
-  btn.textContent = '⏳ Envoi en cours…';
+  btn.innerHTML = '⏳ Ouverture WhatsApp…';
   btn.disabled = true;
 
+  // ── 5. Ouvrir WhatsApp avec le message pré-rempli (numéro Malikov)
+  const encoded = encodeURIComponent(texte);
+  const waUrl   = `https://wa.me/22890823180?text=${encoded}`;
+
   setTimeout(() => {
+    // Mettre à jour le lien de secours avec le vrai message
+    const waBtn = document.getElementById('wa-link-success');
+    if (waBtn) waBtn.href = waUrl;
+
+    // Ouvrir WhatsApp dans un nouvel onglet
+    window.open(waUrl, '_blank');
+
+    // Afficher le message de succès
     document.getElementById('form-content').style.display = 'none';
     document.getElementById('form-success').classList.add('show');
-  }, 1200);
+  }, 800);
 }
 
 /* ── Shake keyframes ── */
