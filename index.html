@@ -2475,54 +2475,70 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 });
 </script>
 <script>
-  // 1. L'URL s'arrête bien à .co
-  const SUPABASE_URL = "https://jxhwfyzmyokugfysezjv.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aHdmeXpteW9rdWdmeXNlemp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MzA5NjAsImV4cCI6MjA5NDQwNjk2MH0.eBByJXZr1wC7m3WM_BrsnvQgOFhn3h8ubDBSqkI9eKw";
+const SUPABASE_URL = "https://jxhwfyzmyokugfysezjv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aHdmeXpteW9rdWdmeXNlemp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MzA5NjAsImV4cCI6MjA5NDQwNjk2MH0.eBByJXZr1wC7m3WM_BrsnvQgOFhn3h8ubDBSqkI9eKw";
 
-  const form = document.getElementById('form-devis');
+const form = document.getElementById('form-devis');
 
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+if (!form) {
+  console.error("Formulaire 'form-devis' introuvable !");
+} else {
+  console.log("Formulaire détecté.");
+}
 
-      const formData = new FormData(form);
-      const data = {
-        nom: formData.get('nom'),
-        telephone: formData.get('telephone'),
-        budget: formData.get('budget'),
-        message: formData.get('message'),
-        services: formData.get('services'),
-        statut: 'Nouveau'
-      };
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      try {
-        // 2. On ajoute /rest/v1/Devis (avec le D majuscule) ici
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/Devis`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify(data)
-        });
+    // BUG 2 CORRIGÉ : utiliser getElementById au lieu de FormData
+    const prenom   = document.getElementById('prenom')?.value.trim()   || '';
+    const nom      = document.getElementById('nom')?.value.trim()       || '';
+    const telephone= document.getElementById('telephone')?.value.trim() || '';
+    const whatsapp = document.getElementById('whatsapp')?.value.trim()  || '';
+    const email    = document.getElementById('email')?.value.trim()     || '';
+    const type     = document.getElementById('type')?.value             || '';
+    const budget   = document.getElementById('budget')?.value           || '';
+    const message  = document.getElementById('message')?.value.trim()   || '';
 
-        if (response.ok) {
-          alert('Votre demande de devis a bien été envoyée !');
-          form.reset();
-        } else {
-          const errorData = await response.json();
-          console.error('Erreur Supabase:', errorData);
-          alert("Erreur lors de l'envoi : " + (errorData.message || "vérifiez la console"));
-        }
-      } catch (error) {
-        console.error('Erreur réseau:', error);
-        alert("Impossible de joindre le serveur.");
+    // BUG 3 CORRIGÉ : récupérer toutes les checkboxes cochées
+    const services = [...document.querySelectorAll('.form-check input:checked')]
+      .map(cb => cb.closest('label').querySelector('span').textContent.trim());
+
+    const data = {
+      prenom, nom, telephone, whatsapp,
+      email, type_besoin: type, budget, message,
+      services,
+      statut: 'Nouveau'
+    };
+
+    try {
+      // BUG 1 CORRIGÉ : "devis" en minuscule (pas "Devis")
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/devis`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        document.getElementById('form-content').style.display = 'none';
+        document.getElementById('form-success').classList.add('show');
+        form.reset();
+      } else {
+        const errorData = await response.json();
+        console.error('Erreur Supabase:', errorData);
+        alert("Erreur : " + (errorData.message || JSON.stringify(errorData)));
       }
-    });
-  }
-</script>
+    } catch (error) {
+      console.error('Erreur réseau:', error);
+      alert("Erreur de connexion. Vérifiez votre connexion internet.");
+    }
+  });
+}
 </script>
 </body>
 </html>
