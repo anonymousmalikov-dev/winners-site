@@ -2474,33 +2474,30 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 </script>
-<!-- Remplacez les valeurs ci-dessous par vos propres identifiants Supabase -->
 <script>
-  const SUPABASE_URL = "https://jxhwfyzmyokugfysezjv.supabase.co/Devis";
+  // 1. L'URL s'arrête bien à .co
+  const SUPABASE_URL = "https://jxhwfyzmyokugfysezjv.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aHdmeXpteW9rdWdmeXNlemp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MzA5NjAsImV4cCI6MjA5NDQwNjk2MH0.eBByJXZr1wC7m3WM_BrsnvQgOFhn3h8ubDBSqkI9eKw";
 
-  // On cible le formulaire (assurez-vous que votre balise <form> a l'id="form-devis")
   const form = document.getElementById('form-devis');
 
   if (form) {
     form.addEventListener('submit', async (e) => {
-      e.preventDefault(); // Empêche la page de se recharger
+      e.preventDefault();
 
-      // Récupération des données du formulaire
-      // Assurez-vous que l'attribut "name" de vos inputs correspond exactement aux colonnes Supabase
       const formData = new FormData(form);
       const data = {
         nom: formData.get('nom'),
         telephone: formData.get('telephone'),
         budget: formData.get('budget'),
         message: formData.get('message'),
-        services: formData.get('services'), // Si c'est un select ou input text
-        statut: 'Nouveau' // Statut initial automatique
+        services: formData.get('services'),
+        statut: 'Nouveau'
       };
 
       try {
-        // Envoi des données à l'API Supabase
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/devis`, {
+        // 2. On ajoute /rest/v1/Devis (avec le D majuscule) ici
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/Devis`, {
           method: 'POST',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -2513,11 +2510,11 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
         if (response.ok) {
           alert('Votre demande de devis a bien été envoyée !');
-          form.reset(); // Vide le formulaire
+          form.reset();
         } else {
           const errorData = await response.json();
           console.error('Erreur Supabase:', errorData);
-          alert("Une erreur est survenue lors de l'envoi.");
+          alert("Erreur lors de l'envoi : " + (errorData.message || "vérifiez la console"));
         }
       } catch (error) {
         console.error('Erreur réseau:', error);
@@ -2525,6 +2522,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
       }
     });
   }
+</script>
 </script>
 </body>
 </html>
